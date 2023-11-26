@@ -1,10 +1,13 @@
 # qq-nodes-comfyui
 Custom nodes for comfyui
 
+## Install 
+Clone repo into your custom_nodes folder in comfyui
+
 ## XY Grid
 Required custom mode packages
-* https://github.com/WASasquatch/was-node-suite-comfyui
 * https://github.com/LEv145/images-grid-comfy-plugin
+* https://github.com/WASasquatch/was-node-suite-comfyui ( for this specific workflow example, can be used without it)
 
 ### Workflow example
 XY Grid over prompt and cfg value
