@@ -49,4 +49,4 @@ Convert any type into a LIST of that type
 
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/load-lines-from-file.png?raw=true)
 
-Utility node to make it easier to load prompts etc directly from a text file into a LIST for use with the XY Grid Helper. Put prompt list in your comfyui input/ folder
+Utility node to make it easier to load prompts etc directly from a text file into a LIST for use with the XY Grid Helper. Put text file in your comfyui input/ folder
