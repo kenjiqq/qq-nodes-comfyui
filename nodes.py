@@ -8,6 +8,9 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import torchvision.transforms as transforms
 
+class AnyType(str):
+    def __ne__(self, __value: object) -> bool:
+        return False
 
 class FeedbackNode:
     def __init__(self):
@@ -61,25 +64,6 @@ class FeedbackNode:
         image_tensor = image_tensor.permute(1, 2, 0)
 
         return image_tensor
-
-
-class TextListIndex(FeedbackNode):
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "list": ("LIST",),
-                "index": ("INT", {"default": 0}),
-            },
-        }
-
-    RETURN_TYPES = "STRING",
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/List"
-
-    def run(self, list, index):
-        return (list[index % len(list)],)
-
 
 class ImageAccumulatorStart(FeedbackNode):
 
@@ -142,21 +126,21 @@ class ImageAccumulatorEnd(FeedbackNode):
             return (images,)
 
 
-class NumberList:
+class AnyList:
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "number_a": ("NUMBER", {"forceInput": True}),
+                "input_a": (AnyType("*"), {"forceInput": True}),
             },
             "optional": {
-                "number_b": ("NUMBER", {"forceInput": True}),
-                "number_c": ("NUMBER", {"forceInput": True}),
-                "number_d": ("NUMBER", {"forceInput": True}),
-                "number_e": ("NUMBER", {"forceInput": True}),
-                "number_f": ("NUMBER", {"forceInput": True}),
-                "number_g": ("NUMBER", {"forceInput": True}),
+                "input_b": (AnyType("*"), {"forceInput": True}),
+                "input_c": (AnyType("*"), {"forceInput": True}),
+                "input_d": (AnyType("*"), {"forceInput": True}),
+                "input_e": (AnyType("*"), {"forceInput": True}),
+                "input_f": (AnyType("*"), {"forceInput": True}),
+                "input_g": (AnyType("*"), {"forceInput": True}),
             }
         }
     RETURN_TYPES = ("LIST",)
@@ -164,83 +148,24 @@ class NumberList:
 
     CATEGORY = "QQNodes/List"
 
-    def run(self, number_a, number_b=None, number_c=None, number_d=None, number_e=None, number_f=None, number_g=None):
+    def run(self, input_a, input_b=None, input_c=None, input_d=None, input_e=None, input_f=None, input_g=None):
 
-        number_list = [number_a,]
+        input_list = [input_a,]
 
-        if number_b:
-            number_list.append(number_b)
-        if number_c:
-            number_list.append(number_c)
-        if number_d:
-            number_list.append(number_d)
-        if number_e:
-            number_list.append(number_e)
-        if number_f:
-            number_list.append(number_f)
-        if number_g:
-            number_list.append(number_g)
+        if input_b:
+            input_list.append(input_b)
+        if input_c:
+            input_list.append(input_c)
+        if input_d:
+            input_list.append(input_d)
+        if input_e:
+            input_list.append(input_e)
+        if input_f:
+            input_list.append(input_f)
+        if input_g:
+            input_list.append(input_g)
 
-        return (number_list,)
-
-
-class NumberListIndex:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "list": ("LIST",),
-                "index": ("INT", {"default": 0}),
-            },
-        }
-
-    RETURN_TYPES = "NUMBER",
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/List"
-
-    def run(self, list, index):
-        return (list[index % len(list)],)
-
-
-class NumberListIterator:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "counter": ("INT", {"default": 0}),
-                "list": ("LIST",),
-                "repeats": ("INT", {"default": 1, "min": 1}),
-            },
-            "optional": {
-            }
-        }
-
-    RETURN_TYPES = "NUMBER",
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/List"
-
-    def run(self, counter, list, repeats):
-        return (list[counter // repeats % len(list)],)
-
-
-class TextListIterator:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "counter": ("INT", {"default": 0}),
-                "list": ("LIST",),
-                "repeats": ("INT", {"default": 1, "min": 1}),
-            }
-        }
-
-    RETURN_TYPES = "STRING",
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/List"
-
-    def run(self, counter, list, repeats):
-        return (list[counter // repeats % len(list)],)
-
+        return (input_list,)
 
 class LoadLinesFromTextFile:
     @classmethod
@@ -290,18 +215,18 @@ class LoadLinesFromTextFile:
         return cls.getFileHash(file_path)
 
 
-class XYGridHelper(FeedbackNode):
+class XYGridHelper():
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "row_list": ("LIST",),
                 "column_list": ("LIST",),
-                "index": ("INT", {"default": 0}),
             },
             "optional": {
                 "row_prefix": ("STRING", {"default": ""}),
                 "column_prefix": ("STRING", {"default": ""}),
+                "index": ("QQINDEX", {} )
             }
         }
 
@@ -316,7 +241,7 @@ class XYGridHelper(FeedbackNode):
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def run(self, row_list, column_list, index, row_prefix, column_prefix):
+    def run(self, row_list, column_list, row_prefix, column_prefix, index):
         if not self.validate_axis_types(row_list):
             raise Exception(
                 "Invalid type for row_list: {}".format(type(row_list[0])))
@@ -325,10 +250,8 @@ class XYGridHelper(FeedbackNode):
                 "Invalid type for column_list: {}".format(type(column_list[0])))
 
         total_grid_images = len(row_list) * len(column_list)
-        ui = self.get_feedback(
-            f"Image {(index % total_grid_images) + 1} of {total_grid_images}")
         x_repeate = len(column_list)
-        return dict({"result": (
+        return {"result": (
             row_list[index // x_repeate % len(row_list)],
             column_list[index % len(column_list)],
             ";".join([self.truncate_string(self.format_prefix(row_prefix, str(x))) for x in row_list]),
@@ -336,7 +259,7 @@ class XYGridHelper(FeedbackNode):
             len(column_list),
             len(row_list) * len(column_list),
             index % total_grid_images
-        )}, **ui)
+        ), "ui": {"total_images": [total_grid_images]}}
     
     def format_prefix(self, prefix, text):
         if prefix:
@@ -367,6 +290,23 @@ class AxisToString:
         }
 
     RETURN_TYPES = ("STRING",)
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/XYGrid"
+
+    def run(self, axis):
+        return (axis,)
+
+    
+class AxisToModel:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "axis": ("AXIS_VALUE", {}),
+            }
+        }
+
+    RETURN_TYPES = ("MODEL",)
     FUNCTION = "run"
     CATEGORY = "QQNodes/XYGrid"
 
@@ -427,17 +367,14 @@ class SliceList:
 
 
 NODE_CLASS_MAPPINGS = {
-    "Number List": NumberList,
-    "Text List Index": TextListIndex,
-    "Number List Index": NumberListIndex,
+    "Any List": AnyList,
     "Image Accumulator Start": ImageAccumulatorStart,
     "Image Accumulator End": ImageAccumulatorEnd,
-    "Number List Iterator": NumberListIterator,
-    "Text List Iterator": TextListIterator,
     "Load Lines From Text File": LoadLinesFromTextFile,
     "XY Grid Helper": XYGridHelper,
     "Axis To String": AxisToString,
     "Axis To Int": AxisToInt,
     "Axis To Float": AxisToFloat,
+    "Axis To Model": AxisToModel,
     "Slice List": SliceList,
 }

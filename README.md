@@ -11,4 +11,30 @@ XY Grid over prompt and cfg value
 
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/workflows/xy-grid.png?raw=true)
 
-Note the green primitive node should have control_after_generatation set to increment and when you want to start a grid generation set it's value to 0. It functions as a counter/ticker for the node to track what loop number we are on currently. Queue up prompts equal to the number of images required in the grid. The XY Grid helper node will show the total amount of images in the grid after the first Prompt is queued up so use that to know how many more Prompts to queue.
+Click the reset button in the XY Grid Helper node before starting a run to make a grid. Queue up prompts equal to the number of images required in the grid. The reset button in the XY Grid helper node will show the total amount of images in the grid after the first Prompt is queued up and what the current count is up to so queue up prompts until the counter and total are the same. For instance (4 of 4).
+
+### Nodes
+
+#### XY Grid Helper
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-helper.png?raw=true)
+
+The node takes in a LIST for the row values and column values each and will iterate through each combination of them. To be able to use the row and column value output since the type of them are unknown one of the "Axis To X" nodes has to be used to convert to the correct type that can be connected to whatever other node you want to send the values to. 
+
+"row_annotation", "column_annotation" and "max_columns" all connect up to the grid nodes from https://github.com/LEv145/images-grid-comfy-plugin
+
+"image_accumulator_count" and "imag_accumulator_reset" connects to to the image accumulator node
+
+Click the reset button before starting a new run to make a XY grid, as you queue up prompts it will show how many images need to be queued to finish the grid
+
+#### Image Accumulator
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/image-accumulator.png?raw=true)
+
+Image Accumulator Start and Image Accumulator End must always be used together so the node is able to stop the execution of the downstream connected nodes until the grid is finished.
+
+As images are generated the node will show a preview of all images generated so far so you can inspect them.
+
+#### Grid nodes 
+
+Refer to https://github.com/LEv145/images-grid-comfy-plugin for more information
