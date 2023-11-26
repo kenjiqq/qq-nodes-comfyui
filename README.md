@@ -38,3 +38,15 @@ As images are generated the node will show a preview of all images generated so 
 #### Grid nodes 
 
 Refer to https://github.com/LEv145/images-grid-comfy-plugin for more information
+
+#### Any List
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/any-list.png?raw=true)
+
+Convert any type into a LIST of that type
+
+#### Load Lines From Text File
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/load-lines-from-file.png?raw=true)
+
+Utility node to make it easier to load prompts etc directly from a text file into a LIST for use with the XY Grid Helper. Put prompt list in your comfyui input/ folder
