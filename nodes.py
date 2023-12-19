@@ -1,4 +1,5 @@
 from comfy.model_management import InterruptProcessingException
+from comfy.model_patcher import ModelPatcher
 import torch
 import os
 import hashlib
@@ -275,7 +276,7 @@ class XYGridHelper():
 
     def validate_axis_types(self, list):
         for i in list:
-            if not isinstance(i, (str, int, float)):
+            if not isinstance(i, (str, int, float, ModelPatcher)):
                 return False
         return True
 
@@ -330,6 +331,22 @@ class AxisToInt:
     def run(self, axis):
         return (axis,)
 
+class AxisToNumber:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "axis": ("AXIS_VALUE",),
+            }
+        }
+
+    RETURN_TYPES = ("NUMBER",)
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/XYGrid"
+
+    def run(self, axis):
+        return (axis,)
+
 class AxisToFloat:
     @classmethod
     def INPUT_TYPES(cls):
@@ -374,6 +391,7 @@ NODE_CLASS_MAPPINGS = {
     "XY Grid Helper": XYGridHelper,
     "Axis To String": AxisToString,
     "Axis To Int": AxisToInt,
+    "Axis To Number": AxisToNumber,
     "Axis To Float": AxisToFloat,
     "Axis To Model": AxisToModel,
     "Slice List": SliceList,
