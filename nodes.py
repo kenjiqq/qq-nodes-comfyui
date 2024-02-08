@@ -8,6 +8,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import torchvision.transforms as transforms
+import json
 
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
@@ -280,90 +281,6 @@ class XYGridHelper():
                 return False
         return True
 
-
-class AxisToString:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "axis": ("AXIS_VALUE", {}),
-            }
-        }
-
-    RETURN_TYPES = ("STRING",)
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/XYGrid"
-
-    def run(self, axis):
-        return (axis,)
-
-    
-class AxisToModel:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "axis": ("AXIS_VALUE", {}),
-            }
-        }
-
-    RETURN_TYPES = ("MODEL",)
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/XYGrid"
-
-    def run(self, axis):
-        return (axis,)
-
-
-class AxisToInt:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "axis": ("AXIS_VALUE",),
-            }
-        }
-
-    RETURN_TYPES = ("INT",)
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/XYGrid"
-
-    def run(self, axis):
-        return (axis,)
-
-class AxisToNumber:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "axis": ("AXIS_VALUE",),
-            }
-        }
-
-    RETURN_TYPES = ("NUMBER",)
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/XYGrid"
-
-    def run(self, axis):
-        return (axis,)
-
-class AxisToFloat:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "axis": ("AXIS_VALUE",),
-            }
-        }
-
-    RETURN_TYPES = ("FLOAT",)
-    FUNCTION = "run"
-    CATEGORY = "QQNodes/XYGrid"
-
-    def run(self, axis):
-        return (axis,)
-
-
 class SliceList:
     @classmethod
     def INPUT_TYPES(cls):
@@ -381,6 +298,42 @@ class SliceList:
 
     def run(self, list, start, end):
         return (list[start:end],)
+    
+class AxisBase:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "axis": ("AXIS_VALUE",),
+            }
+        }
+    
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/XYGrid Axis"
+
+    def run(self, axis):
+        return (axis,)
+
+def create_axis_class(name):
+    class_dict = {
+        'RETURN_TYPES': (name,),
+    }
+    
+    return type(f"AxisTo{name}", (AxisBase,), class_dict)
+
+def load_axis_config_and_create_classes(node_map):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    config_path = os.path.join(dir_path, "axis-config.json")
+    with open(config_path, 'r') as f:
+        config = json.load(f)
+
+    if not isinstance(config, list):
+        raise ValueError("Axis config must be a json list")
+    
+    for axis_config in config:
+        cls = create_axis_class(axis_config)
+        globals()[axis_config] = cls
+        node_map["Axis To " + axis_config] = cls
 
 
 NODE_CLASS_MAPPINGS = {
@@ -389,10 +342,7 @@ NODE_CLASS_MAPPINGS = {
     "Image Accumulator End": ImageAccumulatorEnd,
     "Load Lines From Text File": LoadLinesFromTextFile,
     "XY Grid Helper": XYGridHelper,
-    "Axis To String": AxisToString,
-    "Axis To Int": AxisToInt,
-    "Axis To Number": AxisToNumber,
-    "Axis To Float": AxisToFloat,
-    "Axis To Model": AxisToModel,
     "Slice List": SliceList,
 }
+
+load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS)
