@@ -52,6 +52,12 @@ Refer to https://github.com/LEv145/images-grid-comfy-plugin for more information
 
 Convert any type into a LIST of that type
 
+#### Text Splitter
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/text-splitter.png?raw=true)
+
+Simple node that just takes a string and splits it on some delimiter into a LIST that can be passed into a row/col. Use Axis to String on the output side and then convert the string to whatever type you need using for instance WAS nodes.
+
 #### Load Lines From Text File
 
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/load-lines-from-file.png?raw=true)

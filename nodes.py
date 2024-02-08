@@ -279,6 +279,23 @@ class LoadLinesFromTextFile:
     def IS_CHANGED(cls, file):
         file_path = folder_paths.get_annotated_filepath(file)
         return cls.getFileHash(file_path)
+    
+class TextSplitter:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "text": ("STRING", {"default": ""}),
+                "delimiter": ("STRING", {"default": ","}),
+            }
+        }
+
+    RETURN_TYPES = ("LIST",)
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/Text"
+
+    def run(self, text, delimiter):
+        return (text.split(delimiter),)
 
 
 class XYGridHelper():
@@ -401,7 +418,8 @@ NODE_CLASS_MAPPINGS = {
     "XY Grid Helper": XYGridHelper,
     "Slice List": SliceList,
     "Axis Pack": AxisPack,
-    "Axis Unpack": AxisUnpack
+    "Axis Unpack": AxisUnpack,
+    "Text Splitter": TextSplitter
 }
 
 load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")
