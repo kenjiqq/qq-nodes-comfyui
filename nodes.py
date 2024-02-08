@@ -244,13 +244,6 @@ class XYGridHelper():
         return float("NaN")
 
     def run(self, row_list, column_list, row_prefix, column_prefix, index):
-        if not self.validate_axis_types(row_list):
-            raise Exception(
-                "Invalid type for row_list: {}".format(type(row_list[0])))
-        elif not self.validate_axis_types(column_list):
-            raise Exception(
-                "Invalid type for column_list: {}".format(type(column_list[0])))
-
         total_grid_images = len(row_list) * len(column_list)
         x_repeate = len(column_list)
         return {"result": (
@@ -274,12 +267,6 @@ class XYGridHelper():
             return input_string[:length - 3] + '...'
         else:
             return input_string
-
-    def validate_axis_types(self, list):
-        for i in list:
-            if not isinstance(i, (str, int, float, ModelPatcher)):
-                return False
-        return True
 
 class SliceList:
     @classmethod
