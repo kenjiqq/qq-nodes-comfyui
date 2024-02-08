@@ -308,9 +308,9 @@ def create_axis_class(name):
     
     return type(f"AxisTo{name}", (AxisBase,), class_dict)
 
-def load_axis_config_and_create_classes(node_map):
+def load_axis_config_and_create_classes(node_map, config_file):
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(dir_path, "axis-config.json")
+    config_path = os.path.join(dir_path, config_file)
     with open(config_path, 'r') as f:
         config = json.load(f)
 
@@ -332,4 +332,5 @@ NODE_CLASS_MAPPINGS = {
     "Slice List": SliceList,
 }
 
-load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS)
+load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")
+load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "custom-axis-config.json")
