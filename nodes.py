@@ -13,6 +13,11 @@ import json
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
+    
+class PackedAxisItem:
+    def __init__(self, label, value):
+        self.label = label
+        self.value = value
 
 class FeedbackNode:
     def __init__(self):
@@ -168,6 +173,65 @@ class AnyList:
             input_list.append(input_g)
 
         return (input_list,)
+    
+class AxisPack: 
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "input_a": (AnyType("*"), {"forceInput": True}),
+            },
+            "optional": {
+                "input_b": (AnyType("*"), {"forceInput": True}),
+                "input_c": (AnyType("*"), {"forceInput": True}),
+                "input_d": (AnyType("*"), {"forceInput": True}),
+                "input_e": (AnyType("*"), {"forceInput": True}),
+                "input_f": (AnyType("*"), {"forceInput": True}),
+                "input_g": (AnyType("*"), {"forceInput": True}),
+                "label": ("STRING", {"forceInput": False}),
+            }
+        }
+    RETURN_TYPES = ("PACK",)
+    FUNCTION = "run"
+
+    CATEGORY = "QQNodes/XYGrid Axis"
+
+    def run(self, input_a, input_b=None, input_c=None, input_d=None, input_e=None, input_f=None, input_g=None, label=""):
+
+        input_list = [input_a,]
+
+        if input_b:
+            input_list.append(input_b)
+        if input_c:
+            input_list.append(input_c)
+        if input_d:
+            input_list.append(input_d)
+        if input_e:
+            input_list.append(input_e)
+        if input_f:
+            input_list.append(input_f)
+        if input_g:
+            input_list.append(input_g)
+        
+        return (PackedAxisItem(label, input_list),)
+    
+class AxisUnpack:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "axis": ("AXIS_VALUE",),
+            },
+        }
+    RETURN_TYPES = tuple("AXIS_VALUE" for _ in range(7))
+    RETURN_NAMES = tuple("output_" + chr(i) for i in range(ord('a'), ord('a') + 7))
+    FUNCTION = "run"
+
+    CATEGORY = "QQNodes/XYGrid Axis"
+
+    def run(self, axis):
+        padding = [None, ] * (7 - len(axis.value))
+        return tuple(axis.value + padding)
 
 class LoadLinesFromTextFile:
     @classmethod
@@ -249,13 +313,19 @@ class XYGridHelper():
         return {"result": (
             row_list[index // x_repeate % len(row_list)],
             column_list[index % len(column_list)],
-            ";".join([self.truncate_string(self.format_prefix(row_prefix, str(x))) for x in row_list]),
-            ";".join([self.truncate_string(self.format_prefix(column_prefix, str(y))) for y in column_list]),
+            ";".join([self.truncate_string(self.format_prefix(row_prefix, self.get_label(x))) for x in row_list]),
+            ";".join([self.truncate_string(self.format_prefix(column_prefix, self.get_label(y))) for y in column_list]),
             len(column_list),
             len(row_list) * len(column_list),
             index % total_grid_images
         ), "ui": {"total_images": [total_grid_images]}}
     
+    def get_label(self, item):
+        if isinstance(item, PackedAxisItem):
+            return item.label
+        else:
+            return str(item)
+        
     def format_prefix(self, prefix, text):
         if prefix:
             return f"{prefix}: {text}"
@@ -330,6 +400,8 @@ NODE_CLASS_MAPPINGS = {
     "Load Lines From Text File": LoadLinesFromTextFile,
     "XY Grid Helper": XYGridHelper,
     "Slice List": SliceList,
+    "Axis Pack": AxisPack,
+    "Axis Unpack": AxisUnpack
 }
 
 load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")

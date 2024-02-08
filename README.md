@@ -57,3 +57,11 @@ Convert any type into a LIST of that type
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/load-lines-from-file.png?raw=true)
 
 Utility node to make it easier to load prompts etc directly from a text file into a LIST for use with the XY Grid Helper. Put text file in your comfyui input/ folder
+
+#### Axis Packing
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/axis-packing.png?raw=true)
+
+If you want to change multiple things in a row or column you can use the Axis Pack node to pack all the values you want to use and send that into the AnyList. On the output side of the XYGridHelper you then use Axis Unpack node to split the row/column into its components again.
+
+Axis Pack node also allows you to set the label that will be used in the final grid image. So you can also use the node with just 1 input if you want to control the label
