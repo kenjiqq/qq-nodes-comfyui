@@ -43,9 +43,10 @@ app.registerExtension({
 			const p = structuredClone(await _original_graphToPrompt.apply(app));
 			for (const node of app.graph.findNodesByType("XY Grid Helper")) {
 				const widget = node.widgets?.find((w) => w.qqId === "reset_button");
-				if (widget !== undefined) {
-					p.output[node.id].inputs[widget.qqInputName] = p.output[node.id].inputs[widget.name]
-					delete p.output[node.id].inputs[widget.name]
+				const promptNode = p.output[node.id]
+				if (widget !== undefined && promptNode !== undefined) {
+					promptNode.inputs[widget.qqInputName] = promptNode.inputs[widget.name]
+					delete promptNode.inputs[widget.name]
 				}
 			}
 			return p;
