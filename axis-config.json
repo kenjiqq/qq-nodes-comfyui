@@ -1,1 +1,1 @@
-["STRING", "MODEL", "INT", "NUMBER", "FLOAT", "VAE", "CLIP"]
+["STRING", "MODEL", "INT", "NUMBER", "FLOAT", "BOOLEAN", "VAE", "CLIP"]
