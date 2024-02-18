@@ -309,6 +309,8 @@ class XYGridHelper():
             "optional": {
                 "row_prefix": ("STRING", {"default": ""}),
                 "column_prefix": ("STRING", {"default": ""}),
+                "page_size": ("INT", {"default": 10}),
+                "label_length": ("INT", {"default": 50}),
                 "index": ("QQINDEX", {} )
             }
         }
@@ -324,17 +326,23 @@ class XYGridHelper():
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def run(self, row_list, column_list, row_prefix, column_prefix, index):
+    def run(self, row_list, column_list, row_prefix, column_prefix, page_size, label_length, index):
         total_grid_images = len(row_list) * len(column_list)
-        x_repeate = len(column_list)
+        adjusted_index = index % total_grid_images
+
+        row_index = adjusted_index // len(column_list) % len(row_list)
+        page_index = row_index // page_size
+        images_pr_page = page_size * len(column_list)
+        row_annotation = ";".join([self.insert_newline_on_word_boundaries(self.format_prefix(row_prefix, self.get_label(x)), label_length) for x in row_list[page_index * page_size : (page_index + 1) * page_size]])
+        column_annotation = ";".join([self.insert_newline_on_word_boundaries(self.format_prefix(column_prefix, self.get_label(y)), label_length) for y in column_list])
         return {"result": (
-            row_list[index // x_repeate % len(row_list)],
-            column_list[index % len(column_list)],
-            ";".join([self.truncate_string(self.format_prefix(row_prefix, self.get_label(x))) for x in row_list]),
-            ";".join([self.truncate_string(self.format_prefix(column_prefix, self.get_label(y))) for y in column_list]),
+            row_list[row_index],
+            column_list[adjusted_index % len(column_list)],
+            row_annotation,
+            column_annotation,  
             len(column_list),
-            len(row_list) * len(column_list),
-            index % total_grid_images
+            min(images_pr_page, total_grid_images - page_index * page_size),
+            adjusted_index % images_pr_page
         ), "ui": {"total_images": [total_grid_images]}}
     
     def get_label(self, item):
@@ -354,6 +362,35 @@ class XYGridHelper():
             return input_string[:length - 3] + '...'
         else:
             return input_string
+    
+    def insert_newline_on_word_boundaries(self, input_string, length=50):
+        # Initialize the result string and the current index
+        result = ""
+        current_index = 0
+
+        while current_index < len(input_string):
+            # If the remaining string is shorter than the length, add it to the result and break
+            if current_index + length >= len(input_string):
+                result += input_string[current_index:]
+                break
+            
+            # Find the nearest space before the next cut-off point
+            next_cutoff = current_index + length
+            space_index = input_string.rfind(' ', current_index, next_cutoff)
+            
+            # If a space is found, and it's not just the first character (avoiding leading spaces)
+            if space_index > current_index:
+                # Add the substring up to the space and a newline
+                result += input_string[current_index:space_index] + '\n'
+                # Update the current index to the character after the space
+                current_index = space_index + 1
+            else:
+                # If no suitable space is found, just cut at the specified length
+                result += input_string[current_index:next_cutoff] + '\n'
+                current_index = next_cutoff
+
+        return result
+
 
 class SliceList:
     @classmethod
