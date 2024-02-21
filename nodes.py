@@ -410,6 +410,22 @@ class SliceList:
     def run(self, list, start, end):
         return (list[start:end],)
     
+class AnyToAny:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "any": (AnyType("*"),),
+            }
+        }
+
+    RETURN_TYPES = (AnyType("*"),)
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/Utils"
+
+    def run(self, any):
+        return (any,)
+    
 class AxisBase:
     @classmethod
     def INPUT_TYPES(cls):
@@ -456,7 +472,8 @@ NODE_CLASS_MAPPINGS = {
     "Slice List": SliceList,
     "Axis Pack": AxisPack,
     "Axis Unpack": AxisUnpack,
-    "Text Splitter": TextSplitter
+    "Text Splitter": TextSplitter,
+    "Any To Any": AnyToAny,
 }
 
 load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")

@@ -71,3 +71,11 @@ Utility node to make it easier to load prompts etc directly from a text file int
 If you want to change multiple things in a row or column you can use the Axis Pack node to pack all the values you want to use and send that into the AnyList. On the output side of the XYGridHelper you then use Axis Unpack node to split the row/column into its components again.
 
 Axis Pack node also allows you to set the label that will be used in the final grid image. So you can also use the node with just 1 input if you want to control the label
+
+#### Any to Any
+
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/any-to-any.png?raw=true)
+
+WARNING: this is very hacky and disables all type checking in comfy so if you send in anything anything wrong you will not get any warnings and behaviour might be pretty random depening on what node you connect to.
+
+This node should be able to take in any value (does not work with primitive node or reroute nodes) and connect to any other node regardless of if the types are compatible or not.
