@@ -76,6 +76,6 @@ Axis Pack node also allows you to set the label that will be used in the final g
 
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/any-to-any.png?raw=true)
 
-WARNING: this is very hacky and disables all type checking in comfy so if you send in anything anything wrong you will not get any warnings and behaviour might be pretty random depening on what node you connect to.
+WARNING: this is very hacky and disables all type checking in comfy so if you send in anything wrong you will not get any warnings and behaviour might be pretty random depening on what node you connect to.
 
 This node should be able to take in any value (does not work with primitive node or reroute nodes) and connect to any other node regardless of if the types are compatible or not.
