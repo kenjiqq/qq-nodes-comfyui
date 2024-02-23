@@ -19,6 +19,7 @@ Click the reset button in the XY Grid Helper node before starting a run to make 
 ### Additional workflow examples
 
 [Sampler Grid](workflows/sampler-grid.md) Using combo widgets in the grid, like sampler_name
+
 [Axis Packing Grid](workflows/axis-packing-grid.md) Using axis packing to pass multiple items into an axis, in this case a unet, clip and vae
 
 
