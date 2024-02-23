@@ -16,6 +16,12 @@ XY Grid over prompt and cfg value
 
 Click the reset button in the XY Grid Helper node before starting a run to make a grid. Queue up prompts equal to the number of images required in the grid. The reset button in the XY Grid helper node will show the total amount of images in the grid after the first Prompt is queued up and what the current count is up to so queue up prompts until the counter and total are the same. For instance (4 of 4).
 
+### Additional workflow examples
+
+[Sampler Grid](workflows/sampler-grid.md) Using combo widgets in the grid, like sampler_name
+[Axis Packing Grid](workflows/axis-packing-grid.md) Using axis packing to pass multiple items into an axis, in this case a unet, clip and vae
+
+
 ### Custom AxisTo converters
 
 If you want to use other input/output types then the ones already supported by the library through the AxisToXXX converter nodes you can add the type you want to the custom-axis-config-json file locally and it will automatically generate a AxisTo converter node for this type.
@@ -24,13 +30,19 @@ If you want to use other input/output types then the ones already supported by t
 
 #### XY Grid Helper
 
-![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-helper.png?raw=true)
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-helper.jpg?raw=true)
 
 The node takes in a LIST for the row values and column values each and will iterate through each combination of them. To be able to use the row and column value output since the type of them are unknown one of the "Axis To X" nodes has to be used to convert to the correct type that can be connected to whatever other node you want to send the values to. 
 
 "row_annotation", "column_annotation" and "max_columns" all connect up to the grid nodes from https://github.com/LEv145/images-grid-comfy-plugin
 
 "image_accumulator_count" and "imag_accumulator_reset" connects to to the image accumulator node
+
+"row_prefix, "column_prefix" you can set text that will be added before related label in the grid
+
+"page_size" sets how many rows to generate before outputting the grid image, grids can become very large with high resolution images so can be a good idea to split them into smaller grids using this
+
+"label_length" sets the max character length before the label will be broken into multiple lines
 
 Click the reset button before starting a new run to make a XY grid, as you queue up prompts it will show how many images need to be queued to finish the grid
 

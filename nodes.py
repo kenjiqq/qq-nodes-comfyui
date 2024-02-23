@@ -174,6 +174,23 @@ class AnyList:
 
         return (input_list,)
     
+class AnyListIterator:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "counter": ("INT", {"default": 0}),
+                "list": ("LIST",),
+            }
+        }
+
+    RETURN_TYPES = "AXIS_VALUE",
+    FUNCTION = "run"
+    CATEGORY = "QQNodes/List"
+
+    def run(self, counter, list):
+        return (list[counter % len(list)],)
+    
 class AxisPack: 
     @classmethod
     def INPUT_TYPES(cls):
@@ -440,6 +457,9 @@ class AxisBase:
 
     def run(self, axis):
         return (axis,)
+    
+class AxisToAny(AxisBase):
+    RETURN_TYPES = (AnyType("*"),)
 
 def create_axis_class(name):
     class_dict = {
@@ -465,6 +485,7 @@ def load_axis_config_and_create_classes(node_map, config_file):
 
 NODE_CLASS_MAPPINGS = {
     "Any List": AnyList,
+    "Any List Iterator": AnyListIterator,
     "Image Accumulator Start": ImageAccumulatorStart,
     "Image Accumulator End": ImageAccumulatorEnd,
     "Load Lines From Text File": LoadLinesFromTextFile,
@@ -474,6 +495,7 @@ NODE_CLASS_MAPPINGS = {
     "Axis Unpack": AxisUnpack,
     "Text Splitter": TextSplitter,
     "Any To Any": AnyToAny,
+    "Axis To Any": AxisToAny
 }
 
 load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")
