@@ -6,8 +6,8 @@ Clone repo into your custom_nodes folder in comfyui
 
 ## XY Grid
 Required custom mode packages
-* https://github.com/LEv145/images-grid-comfy-plugin
-* https://github.com/WASasquatch/was-node-suite-comfyui ( for this specific workflow example, can be used without it)
+* https://github.com/LEv145/images-grid-comfy-plugin ( used behind the scene through node expansion )
+* https://github.com/WASasquatch/was-node-suite-comfyui ( for this specific workflow example, can be used without it )
 
 ### Workflow example
 XY Grid over prompt and cfg value
@@ -31,7 +31,7 @@ If you want to use other input/output types then the ones already supported by t
 
 #### XY Grid Helper
 
-![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-helper.jpg?raw=true)
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-helper.png?raw=true)
 
 The node takes in a LIST for the row values and column values each and will iterate through each combination of them. To be able to use the row and column value output since the type of them are unknown one of the "Axis To X" nodes has to be used to convert to the correct type that can be connected to whatever other node you want to send the values to. 
 
@@ -45,13 +45,19 @@ The node takes in a LIST for the row values and column values each and will iter
 
 "label_length" sets the max character length before the label will be broken into multiple lines
 
+"font_size" font size for the labels of the grid axis
+
+"grid_gap" size of the gap between images in the grid
+
 Click the reset button before starting a new run to make a XY grid, as you queue up prompts it will show how many images need to be queued to finish the grid
 
-#### Image Accumulator
+#### XY Grid Accumulator
 
-![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/image-accumulator.png?raw=true)
+![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/assets/xy-grid-accumulator.png?raw=true)
 
-Image Accumulator Start and Image Accumulator End must always be used together so the node is able to stop the execution of the downstream connected nodes until the grid is finished.
+Accumulates images for the grid and stop the execution of the downstream connected nodes until the grid is finished.
+
+Uses node expansion to inject the images-grid-comfy-plugin nodes behind the scene to generate the grid.
 
 As images are generated the node will show a preview of all images generated so far so you can inspect them.
 

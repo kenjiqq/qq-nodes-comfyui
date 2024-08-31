@@ -1,5 +1,5 @@
-from comfy.model_management import InterruptProcessingException
-from comfy.model_patcher import ModelPatcher
+from comfy_execution.graph_utils import GraphBuilder
+from comfy_execution.graph import ExecutionBlocker
 import torch
 import os
 import hashlib
@@ -10,14 +10,17 @@ import numpy as np
 import torchvision.transforms as transforms
 import json
 
+
 class AnyType(str):
     def __ne__(self, __value: object) -> bool:
         return False
-    
+
+
 class PackedAxisItem:
     def __init__(self, label, value):
         self.label = label
         self.value = value
+
 
 class FeedbackNode:
     def __init__(self):
@@ -72,28 +75,34 @@ class FeedbackNode:
 
         return image_tensor
 
-class ImageAccumulatorStart(FeedbackNode):
+
+class XYGridAccumulator(FeedbackNode):
+
+    @classmethod
+    def IS_CHANGED(cls, images, xy_grid_control, unique_id):
+        return images, xy_grid_control, unique_id
 
     @classmethod
     def INPUT_TYPES(cls):
         return {
             "required": {
                 "images": ("IMAGE",),
-                "count": ("INT", {"default": 1}),
+                "xy_grid_control": ("XY_GRID_CONTROL",),
             },
-            "optional": {
-                "reset": ("INT", {"default": 1}),
+            "hidden": {
+                "unique_id": "UNIQUE_ID",
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "IMAGE_ACCUMULATOR_STATUS")
-    RETURN_NAMES = ("images", "status")
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("images",)
     FUNCTION = "run"
-    CATEGORY = "QQNodes/Image"
+    CATEGORY = "QQNodes/XYGrid"
 
     image_batch = torch.Tensor()
 
-    def run(self, images, count, reset):
+    def run(self, images, xy_grid_control, unique_id):
+        count, reset, row_texts, column_texts, max_columns, font_size, grid_gap = xy_grid_control
         if reset == 0:
             self.image_batch = torch.Tensor()
         total_images = torch.cat((self.image_batch, images))
@@ -107,30 +116,19 @@ class ImageAccumulatorStart(FeedbackNode):
         image_list = [processed_images[i]
                       for i in range(processed_images.shape[0])]
         ui_result = self.preview_images(image_list)
-        return {"result": (image_list, len(image_list) >= count), "ui": {"images": ui_result}}
-
-
-class ImageAccumulatorEnd(FeedbackNode):
-
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {
-            "required": {
-                "images": ("IMAGE",),
-                "status": ("IMAGE_ACCUMULATOR_STATUS",),
-            },
-        }
-
-    RETURN_TYPES = "IMAGE",
-    FUNCTION = "run"
-    OUTPUT_NODE = True
-    CATEGORY = "QQNodes/Image"
-
-    def run(self, images, status):
-        if not status:
-            raise InterruptProcessingException()
+        if len(image_list) < count:
+            return {"result": (ExecutionBlocker(None),), "ui": {"images": ui_result}}
         else:
-            return (images,)
+            graph = GraphBuilder()
+            grid_annotation_node = graph.node(
+                "GridAnnotation", row_texts=row_texts, column_texts=column_texts, font_size=font_size)
+            images_grid_by_columns_node = graph.node(
+                "ImagesGridByColumns", images=image_list, annotation=grid_annotation_node.out(0), max_columns=max_columns, gap=grid_gap)
+            return {
+                "result": (images_grid_by_columns_node.out(0),),
+                "ui": {"images": ui_result},
+                "expand": graph.finalize()
+            }
 
 
 class AnyList:
@@ -173,7 +171,8 @@ class AnyList:
             input_list.append(input_g)
 
         return (input_list,)
-    
+
+
 class AnyListIterator:
     @classmethod
     def INPUT_TYPES(cls):
@@ -190,8 +189,9 @@ class AnyListIterator:
 
     def run(self, counter, list):
         return (list[counter % len(list)],)
-    
-class AxisPack: 
+
+
+class AxisPack:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -229,9 +229,10 @@ class AxisPack:
             input_list.append(input_f)
         if input_g:
             input_list.append(input_g)
-        
+
         return (PackedAxisItem(label, input_list),)
-    
+
+
 class AxisUnpack:
     @classmethod
     def INPUT_TYPES(cls):
@@ -241,7 +242,8 @@ class AxisUnpack:
             },
         }
     RETURN_TYPES = tuple("AXIS_VALUE" for _ in range(7))
-    RETURN_NAMES = tuple("output_" + chr(i) for i in range(ord('a'), ord('a') + 7))
+    RETURN_NAMES = tuple("output_" + chr(i)
+                         for i in range(ord('a'), ord('a') + 7))
     FUNCTION = "run"
 
     CATEGORY = "QQNodes/XYGrid Axis"
@@ -249,6 +251,7 @@ class AxisUnpack:
     def run(self, axis):
         padding = [None, ] * (7 - len(axis.value))
         return tuple(axis.value + padding)
+
 
 class LoadLinesFromTextFile:
     @classmethod
@@ -291,12 +294,13 @@ class LoadLinesFromTextFile:
         if not folder_paths.exists_annotated_filepath(file):
             return "Invalid text file: {}".format(file)
         return True
-    
+
     @classmethod
     def IS_CHANGED(cls, file):
         file_path = folder_paths.get_annotated_filepath(file)
         return cls.getFileHash(file_path)
-    
+
+
 class TextSplitter:
     @classmethod
     def INPUT_TYPES(cls):
@@ -328,14 +332,14 @@ class XYGridHelper():
                 "column_prefix": ("STRING", {"default": ""}),
                 "page_size": ("INT", {"default": 10}),
                 "label_length": ("INT", {"default": 50}),
-                "index": ("QQINDEX", {} )
+                "font_size": ("INT", {"default": 50}),
+                "grid_gap": ("INT", {"default": 20}),
+                "index": ("QQINDEX", {})
             }
         }
 
-    RETURN_TYPES = ("AXIS_VALUE", "AXIS_VALUE", "STRING",
-                    "STRING", "INT", "INT", "INT")
-    RETURN_NAMES = ("row_value", "column_value", "row_annotation", "column_annotation",
-                    "max_columns", "image_accumulator_count", "image_accumulator_reset")
+    RETURN_TYPES = ("AXIS_VALUE", "AXIS_VALUE", "XY_GRID_CONTROL")
+    RETURN_NAMES = ("row_value", "column_value", "xy_grid_control")
     FUNCTION = "run"
     CATEGORY = "QQNodes/XYGrid"
 
@@ -343,31 +347,31 @@ class XYGridHelper():
     def IS_CHANGED(cls, **kwargs):
         return float("NaN")
 
-    def run(self, row_list, column_list, row_prefix, column_prefix, page_size, label_length, index):
+    def run(self, row_list, column_list, row_prefix, column_prefix, page_size, label_length, font_size, grid_gap, index):
         total_grid_images = len(row_list) * len(column_list)
         adjusted_index = index % total_grid_images
 
         row_index = adjusted_index // len(column_list) % len(row_list)
         page_index = row_index // page_size
         images_pr_page = page_size * len(column_list)
-        row_annotation = ";".join([self.insert_newline_on_word_boundaries(self.format_prefix(row_prefix, self.get_label(x)), label_length) for x in row_list[page_index * page_size : (page_index + 1) * page_size]])
-        column_annotation = ";".join([self.insert_newline_on_word_boundaries(self.format_prefix(column_prefix, self.get_label(y)), label_length) for y in column_list])
+        row_annotation = ";".join([self.insert_newline_on_word_boundaries(self.format_prefix(row_prefix, self.get_label(
+            x)), label_length) for x in row_list[page_index * page_size: (page_index + 1) * page_size]])
+        column_annotation = ";".join([self.insert_newline_on_word_boundaries(
+            self.format_prefix(column_prefix, self.get_label(y)), label_length) for y in column_list])
+        xy_grid_control = (min(images_pr_page, total_grid_images - page_index * page_size), adjusted_index %
+                           images_pr_page, row_annotation, column_annotation, len(column_list), font_size, grid_gap)
         return {"result": (
             row_list[row_index],
             column_list[adjusted_index % len(column_list)],
-            row_annotation,
-            column_annotation,  
-            len(column_list),
-            min(images_pr_page, total_grid_images - page_index * page_size),
-            adjusted_index % images_pr_page
+            xy_grid_control,
         ), "ui": {"total_images": [total_grid_images]}}
-    
+
     def get_label(self, item):
         if isinstance(item, PackedAxisItem):
             return item.label
         else:
             return str(item)
-        
+
     def format_prefix(self, prefix, text):
         if prefix:
             return f"{prefix}: {text}"
@@ -379,7 +383,7 @@ class XYGridHelper():
             return input_string[:length - 3] + '...'
         else:
             return input_string
-    
+
     def insert_newline_on_word_boundaries(self, input_string, length=50):
         # Initialize the result string and the current index
         result = ""
@@ -390,11 +394,11 @@ class XYGridHelper():
             if current_index + length >= len(input_string):
                 result += input_string[current_index:]
                 break
-            
+
             # Find the nearest space before the next cut-off point
             next_cutoff = current_index + length
             space_index = input_string.rfind(' ', current_index, next_cutoff)
-            
+
             # If a space is found, and it's not just the first character (avoiding leading spaces)
             if space_index > current_index:
                 # Add the substring up to the space and a newline
@@ -426,7 +430,8 @@ class SliceList:
 
     def run(self, list, start, end):
         return (list[start:end],)
-    
+
+
 class AnyToAny:
     @classmethod
     def INPUT_TYPES(cls):
@@ -442,7 +447,8 @@ class AnyToAny:
 
     def run(self, any):
         return (any,)
-    
+
+
 class AxisBase:
     @classmethod
     def INPUT_TYPES(cls):
@@ -451,22 +457,25 @@ class AxisBase:
                 "axis": ("AXIS_VALUE",),
             }
         }
-    
+
     FUNCTION = "run"
     CATEGORY = "QQNodes/XYGrid Axis"
 
     def run(self, axis):
         return (axis,)
-    
+
+
 class AxisToAny(AxisBase):
     RETURN_TYPES = (AnyType("*"),)
+
 
 def create_axis_class(name):
     class_dict = {
         'RETURN_TYPES': (name,),
     }
-    
+
     return type(f"AxisTo{name}", (AxisBase,), class_dict)
+
 
 def load_axis_config_and_create_classes(node_map, config_file):
     dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -476,7 +485,7 @@ def load_axis_config_and_create_classes(node_map, config_file):
 
     if not isinstance(config, list):
         raise ValueError("Axis config must be a json list")
-    
+
     for axis_config in config:
         cls = create_axis_class(axis_config)
         globals()[axis_config] = cls
@@ -486,10 +495,9 @@ def load_axis_config_and_create_classes(node_map, config_file):
 NODE_CLASS_MAPPINGS = {
     "Any List": AnyList,
     "Any List Iterator": AnyListIterator,
-    "Image Accumulator Start": ImageAccumulatorStart,
-    "Image Accumulator End": ImageAccumulatorEnd,
     "Load Lines From Text File": LoadLinesFromTextFile,
     "XY Grid Helper": XYGridHelper,
+    "XY Grid Accumulator": XYGridAccumulator,
     "Slice List": SliceList,
     "Axis Pack": AxisPack,
     "Axis Unpack": AxisUnpack,
@@ -499,4 +507,5 @@ NODE_CLASS_MAPPINGS = {
 }
 
 load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "axis-config.json")
-load_axis_config_and_create_classes(NODE_CLASS_MAPPINGS, "custom-axis-config.json")
+load_axis_config_and_create_classes(
+    NODE_CLASS_MAPPINGS, "custom-axis-config.json")
