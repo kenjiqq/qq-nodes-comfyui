@@ -35,10 +35,6 @@ If you want to use other input/output types then the ones already supported by t
 
 The node takes in a LIST for the row values and column values each and will iterate through each combination of them. To be able to use the row and column value output since the type of them are unknown one of the "Axis To X" nodes has to be used to convert to the correct type that can be connected to whatever other node you want to send the values to. 
 
-"row_annotation", "column_annotation" and "max_columns" all connect up to the grid nodes from https://github.com/LEv145/images-grid-comfy-plugin
-
-"image_accumulator_count" and "imag_accumulator_reset" connects to to the image accumulator node
-
 "row_prefix, "column_prefix" you can set text that will be added before related label in the grid
 
 "page_size" sets how many rows to generate before outputting the grid image, grids can become very large with high resolution images so can be a good idea to split them into smaller grids using this
