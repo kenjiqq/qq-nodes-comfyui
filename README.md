@@ -14,6 +14,7 @@ XY Grid over prompt and cfg value
 
 ![Image](https://github.com/kenjiqq/qq-nodes-comfyui/blob/main/workflows/xy-grid.png?raw=true)
 
+## Usage instructions
 Click the reset button in the XY Grid Helper node before starting a run to make a grid. Queue up prompts equal to the number of images required in the grid. The reset button in the XY Grid helper node will show the total amount of images in the grid after the first Prompt is queued up and what the current count is up to so queue up prompts until the counter and total are the same. For instance (4 of 4).
 
 ### Additional workflow examples
