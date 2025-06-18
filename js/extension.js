@@ -1,5 +1,15 @@
 import { app } from "../../../../scripts/app.js";
 
+// Safe clone function to handle Proxy objects
+function safeClone(obj) {
+	try {
+		return structuredClone(obj);
+	} catch (error) {
+		// Fallback to JSON method if structuredClone fails
+		return JSON.parse(JSON.stringify(obj));
+	}
+}
+
 app.registerExtension({
 	name: "qq-nodes-comfyui",
 	async beforeRegisterNodeDef(nodeType, nodeData, app) {
@@ -36,11 +46,11 @@ app.registerExtension({
 	},
 	async setup(app) {
 		/*
-		Highjack the graphToPrompt function to change the name of the reset button to what the python node expects
-		*/
+		 *     Highjack the graphToPrompt function to change the name of the reset button to what the python node expects
+		 */
 		const _original_graphToPrompt = app.graphToPrompt;
 		app.graphToPrompt = async function () {
-			const p = structuredClone(await _original_graphToPrompt.apply(app));
+			const p = safeClone(await _original_graphToPrompt.apply(app)); // <-- replaced here
 			for (const node of app.graph.findNodesByType("XY Grid Helper")) {
 				const widget = node.widgets?.find((w) => w.qqId === "reset_button");
 				const promptNode = p.output[node.id]
