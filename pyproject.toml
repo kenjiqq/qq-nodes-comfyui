@@ -1,7 +1,7 @@
 [project]
 name = "qq-nodes-comfyui"
 description = "Collection of nodes for generating XY Grids"
-version = "1.0.1"
+version = "1.0.2"
 license = { file = "LICENSE" }
 
 [project.urls]
